@@ -914,7 +914,7 @@ type DownloadMediaMessageContext = {
 	logger: ILogger
 }
 
-const REUPLOAD_REQUIRED_STATUS = [410, 404]
+const REUPLOAD_REQUIRED_STATUS = [410, 404, 403]
 
 /**
  * Downloads the given message. Throws an error if it's not a media message
