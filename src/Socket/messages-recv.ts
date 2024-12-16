@@ -1004,6 +1004,7 @@ export const makeMessagesRecvSocket = (config: SocketConfig) => {
 			ids.push(...items.map(i => i.attrs.id!))
 		}
 
+		await sendMessageAck(node)
 		try {
 			await Promise.all([
 				processingMutex.mutex(async () => {
@@ -1066,7 +1067,7 @@ export const makeMessagesRecvSocket = (config: SocketConfig) => {
 				})
 			])
 		} finally {
-			await sendMessageAck(node)
+			// await sendMessageAck(node)
 		}
 	}
 
@@ -1078,6 +1079,7 @@ export const makeMessagesRecvSocket = (config: SocketConfig) => {
 			return
 		}
 
+		await sendMessageAck(node)
 		try {
 			await Promise.all([
 				processingMutex.mutex(async () => {
@@ -1100,7 +1102,7 @@ export const makeMessagesRecvSocket = (config: SocketConfig) => {
 				})
 			])
 		} finally {
-			await sendMessageAck(node)
+			// await sendMessageAck(node)
 		}
 	}
 
@@ -1188,6 +1190,7 @@ export const makeMessagesRecvSocket = (config: SocketConfig) => {
 			)
 		}
 
+		await sendMessageAck(node)
 		try {
 			await Promise.all([
 				processingMutex.mutex(async () => {
@@ -1280,7 +1283,7 @@ cleanMessage(msg, authState.creds.me!.id)
 				)
 					])
 		} finally {
-					await sendMessageAck(node)
+					// await sendMessageAck(node)
 		}
 	}
 
