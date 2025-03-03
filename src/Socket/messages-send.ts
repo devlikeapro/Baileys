@@ -1239,7 +1239,8 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 								...(httpRequestOptions || {})
 							},
 							logger,
-							uploadImage: generateHighQualityLinkPreview ? waUploadToServer : undefined
+							uploadImage:
+								generateHighQualityLinkPreview || options.linkPreviewHighQuality ? waUploadToServer : undefined
 						}),
 					//TODO: CACHE
 					getProfilePicUrl: sock.profilePictureUrl,
