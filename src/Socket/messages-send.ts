@@ -1281,7 +1281,8 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 								...(axiosOptions || {})
 							},
 							logger,
-							uploadImage: generateHighQualityLinkPreview ? waUploadToServer : undefined
+							uploadImage:
+								generateHighQualityLinkPreview || options.linkPreviewHighQuality ? waUploadToServer : undefined
 						}),
 					//TODO: CACHE
 					getProfilePicUrl: sock.profilePictureUrl,
