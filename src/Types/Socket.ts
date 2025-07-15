@@ -125,4 +125,12 @@ export type SocketConfig = {
     cachedGroupMetadata: (jid: string) => Promise<GroupMetadata | undefined>
 
     makeSignalRepository: (auth: SignalAuthState) => SignalRepository
+
+    countryCode: string,
+    osVersion: string,
+    language: string,
+    mnc: string,
+    mcc: string,
+    osBuildNumber: string,
+    device: string,
 }

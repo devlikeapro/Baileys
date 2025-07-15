@@ -18,11 +18,13 @@ const getUserAgent = (config: SocketConfig): proto.ClientPayload.IUserAgent => {
 		},
 		platform: proto.ClientPayload.UserAgent.Platform.WEB,
 		releaseChannel: proto.ClientPayload.UserAgent.ReleaseChannel.RELEASE,
-		osVersion: '0.1',
-		device: 'Desktop',
-		osBuildNumber: '0.1',
-		localeLanguageIso6391: 'en',
-		localeCountryIso31661Alpha2: 'US'
+		osVersion: config.osVersion || '0.1',
+		device: config.device || 'Desktop',
+		osBuildNumber: config.osBuildNumber || '0.1',
+		mnc: config.mnc || '000',
+		mcc: config.mcc || '000',
+		localeLanguageIso6391: config.language || 'en',
+		localeCountryIso31661Alpha2: config.countryCode || 'US'
 	}
 }
 
