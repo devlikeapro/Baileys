@@ -65,7 +65,14 @@ export const DEFAULT_CONNECTION_CONFIG: SocketConfig = {
 	},
 	getMessage: async() => undefined,
 	cachedGroupMetadata: async() => undefined,
-	makeSignalRepository: makeLibSignalRepository
+	makeSignalRepository: makeLibSignalRepository,
+	countryCode: 'US',
+	osVersion: '10.0',
+	language: 'en',
+	mnc: '000',
+	mcc: '000',
+	osBuildNumber: '1.0.0',
+	device: 'Chrome'
 }
 
 export const MEDIA_PATH_MAP: { [T in MediaType]?: string } = {
