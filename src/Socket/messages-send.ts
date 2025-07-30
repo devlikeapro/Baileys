@@ -23,6 +23,7 @@ import {
 	extractDeviceJids,
 	generateMessageIDV2,
 	generateWAMessage,
+	getContentType,
 	getStatusCodeForMediaRetry,
 	getUrlFromDirectPath,
 	getWAUploadToServer,
@@ -49,6 +50,7 @@ import {
 import { USyncQuery, USyncUser } from '../WAUSync'
 import { makeGroupsSocket } from './groups'
 import { makeNewsletterSocket, NewsletterSocket } from './newsletter'
+import ListType = proto.Message.ListMessage.ListType;
 
 const BATCH_JID_SIZE = 5_000
 
@@ -74,6 +76,20 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 		groupMetadata,
 		groupToggleEphemeral
 	} = sock
+
+	const patchMessageRequiresBeforeSending = (msg: proto.IMessage): proto.IMessage => {
+		if (msg?.deviceSentMessage?.message?.listMessage) {
+			msg = JSON.parse(JSON.stringify(msg))
+			msg.deviceSentMessage!.message.listMessage.listType = proto.Message.ListMessage.ListType.SINGLE_SELECT
+		}
+
+		if (msg?.listMessage) {
+			msg = JSON.parse(JSON.stringify(msg))
+			msg.listMessage!.listType = proto.Message.ListMessage.ListType.SINGLE_SELECT
+		}
+
+		return msg
+	}
 
 	const userDevicesCache =
 		config.userDevicesCache ||
@@ -320,7 +336,8 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 	}
 
 	const createParticipantNodes = async (jids: string[], message: proto.IMessage, extraAttrs?: BinaryNode['attrs']) => {
-		let patched = await patchMessageBeforeSending(message, jids)
+		const requiredPatched = patchMessageRequiresBeforeSending(message)
+		let patched = await patchMessageBeforeSending(requiredPatched, jids)
 		if (!Array.isArray(patched)) {
 			patched = jids ? jids.map(jid => ({ recipientJid: jid, ...patched })) : [patched]
 		}
@@ -424,7 +441,8 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 
 			if (isNewsletter) {
 				// Patch message if needed, then encode as plaintext
-				const patched = patchMessageBeforeSending ? await patchMessageBeforeSending(message, []) : message
+				const requiredPatched = patchMessageRequiresBeforeSending(message)
+				const patched = patchMessageBeforeSending ? await patchMessageBeforeSending(requiredPatched, []) : requiredPatched
 				const bytes = encodeNewsletterMessage(patched as proto.IMessage)
 				binaryNodeContent.push({
 					tag: 'plaintext',
@@ -641,6 +659,22 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 				logger.debug({ jid }, 'adding device identity')
 			}
 
+			const buttonType = getButtonType(message)
+			if (buttonType) {
+				(stanza.content as BinaryNode[]).push({
+					tag: 'biz',
+					attrs: {},
+					content: [
+						{
+							tag: buttonType,
+							attrs: getButtonArgs(message),
+						}
+					]
+				})
+
+				logger.debug({ jid }, 'adding business node')
+			}
+
 			if (additionalNodes && additionalNodes.length > 0) {
 				;(stanza.content as BinaryNode[]).push(...additionalNodes)
 			}
@@ -692,6 +726,36 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 			return 'native_flow_response'
 		} else if (message.groupInviteMessage) {
 			return 'url'
+		}
+	}
+
+	const getButtonType = (message: proto.IMessage) => {
+		if (message.buttonsMessage) {
+			return 'buttons'
+		} else if (message.buttonsResponseMessage) {
+			return 'buttons_response'
+		} else if (message.interactiveResponseMessage) {
+			return 'interactive_response'
+		} else if (message.listMessage) {
+			return 'list'
+		} else if (message.listResponseMessage) {
+			return 'list_response'
+		}
+	}
+
+	const getButtonArgs = (message: proto.IMessage): BinaryNode['attrs'] => {
+		if (message.templateMessage) {
+			// TODO: Add attributes
+			return {}
+		} else if (message.listMessage) {
+			const type = message.listMessage.listType
+			if (!type) {
+				throw new Boom('Expected list type inside message')
+			}
+
+			return { v: '2', type: ListType[type].toLowerCase() }
+		} else {
+			return {}
 		}
 	}
 
@@ -867,6 +931,15 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 					statusJidList: options.statusJidList,
 					additionalNodes
 				})
+
+				try {
+					if (getContentType(fullMsg.message!) === 'listMessage') {
+						await relayMessage(jid, { viewOnceMessageV2: { message: fullMsg.message! } }, { messageId: fullMsg.key.id!, useCachedGroupMetadata: options.useCachedGroupMetadata, additionalAttributes, statusJidList: options.statusJidList, additionalNodes })
+					}
+				} catch (err) {
+					logger.error(err)
+				}
+
 				if (config.emitOwnEvents) {
 					process.nextTick(() => {
 						processingMutex.mutex(() => upsertMessage(fullMsg, 'append'))

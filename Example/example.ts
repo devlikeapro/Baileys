@@ -208,6 +208,32 @@ const startSock = async() => {
 								const messageId = await sock.fetchMessageHistory(50, msg.key, msg.messageTimestamp!)
 								console.log('requested on-demand sync, id=', messageId)
 							}
+
+							// LISTA
+							if (text === "!list") {
+								await sock.readMessages([msg.key]);
+								await sendMessageWTyping({
+									text: "This is a list of options",
+									sections: [
+										{
+											title: "Section 1",
+											rows: [
+												{ title: "Option 1", rowId: "option1", description: "Description of option 1" },
+												{ title: "Option 2", rowId: "option2", description: "Description of option 2" }
+											]
+										},
+										{
+											title: "Section 2",
+											rows: [
+												{ title: "Option 3", rowId: "option3", description: "Description of option 3" },
+												{ title: "Option 4", rowId: "option4", description: "Description of option 4" }
+											]
+										}
+									],
+									buttonText: "Select",
+									title: "Example List"
+								}, msg.key.remoteJid!);
+							}
 						}
 
 						if(!msg.key.fromMe && doReplies && !isJidNewsletter(msg.key?.remoteJid!)) {
