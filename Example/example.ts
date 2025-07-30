@@ -213,25 +213,25 @@ const startSock = async() => {
 							if (text === "!list") {
 								await sock.readMessages([msg.key]);
 								await sendMessageWTyping({
-									text: "Esta é uma lista de opções",
+									text: "This is a list of options",
 									sections: [
 										{
-											title: "Seção 1",
+											title: "Section 1",
 											rows: [
-												{ title: "Opção 1", rowId: "option1", description: "Descrição da opção 1" },
-												{ title: "Opção 2", rowId: "option2", description: "Descrição da opção 2" }
+												{ title: "Option 1", rowId: "option1", description: "Description of option 1" },
+												{ title: "Option 2", rowId: "option2", description: "Description of option 2" }
 											]
 										},
 										{
-											title: "Seção 2",
+											title: "Section 2",
 											rows: [
-												{ title: "Opção 3", rowId: "option3", description: "Descrição da opção 3" },
-												{ title: "Opção 4", rowId: "option4", description: "Descrição da opção 4" }
+												{ title: "Option 3", rowId: "option3", description: "Description of option 3" },
+												{ title: "Option 4", rowId: "option4", description: "Description of option 4" }
 											]
 										}
 									],
-									buttonText: "Selecionar",
-									title: "Lista de Exemplo"
+									buttonText: "Select",
+									title: "Example List"
 								}, msg.key.remoteJid!);
 							}
 						}
