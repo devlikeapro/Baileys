@@ -84,6 +84,23 @@ type ViewOnce = {
 type Editable = {
 	edit?: WAMessageKey
 }
+
+type Listable = {
+    /** Sections of the List */
+    sections?: proto.Message.ListMessage.ISection[]
+
+    /** Title of a List Message only */
+    title?: string
+
+    /** Text of the button on the list (required) */
+    buttonText?: string
+
+    /** ListType of the List */
+    listType?: proto.Message.ListMessage.ListType
+
+    footer?: string
+}
+
 type WithDimensions = {
 	width?: number
 	height?: number
@@ -168,7 +185,8 @@ export type AnyRegularMessageContent = (
 			linkPreview?: WAUrlInfo | null
 	  } & Mentionable &
 			Contextable &
-			Editable)
+            Editable &
+            Listable)
 	| AnyMediaMessageContent
 	| ({
 			poll: PollMessageOptions
