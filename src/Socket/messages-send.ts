@@ -22,7 +22,7 @@ import {
 	encryptMediaRetryRequest,
 	extractDeviceJids,
 	generateMessageIDV2,
-	generateWAMessage,
+	generateWAMessage, getContentType,
 	getStatusCodeForMediaRetry,
 	getUrlFromDirectPath,
 	getWAUploadToServer,
@@ -40,6 +40,7 @@ import {
 	getBinaryNodeChildren,
 	isJidGroup,
 	isJidUser,
+	isLidUser,
 	jidDecode,
 	jidEncode,
 	jidNormalizedUser,
@@ -643,6 +644,22 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 
 			if (additionalNodes && additionalNodes.length > 0) {
 				;(stanza.content as BinaryNode[]).push(...additionalNodes)
+			}
+
+			const content = normalizeMessageContent(message)!
+			const contentType = getContentType(content)!
+			// List only in DB
+			if((isJidUser(jid) || isLidUser(jid)) && contentType === 'listMessage'){
+				const bizNode: BinaryNode = { tag: 'biz', attrs: {} }
+				bizNode.content = [{
+					tag: 'list',
+					attrs: {
+						type: 'product_list',
+						v: '2'
+					}
+				}];
+
+				(stanza.content as BinaryNode[]).push(bizNode)
 			}
 
 			logger.debug({ msgId }, `sending message to ${participants.length} devices`)
