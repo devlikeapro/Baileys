@@ -652,7 +652,7 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 							const recipientUser = jidNormalizedUser(wireJid)
 							const ownPnUser = jidNormalizedUser(meId)
 							const isOwnDevice = recipientUser === ownPnUser
-							logger.info({ wireJid, lidWithDevice, isOwnDevice }, 'Migrated to LID encryption')
+							logger.debug({ wireJid, lidWithDevice, isOwnDevice }, 'Migrated to LID encryption')
 
 							// Delete PN session after successful migration
 							try {
