@@ -313,7 +313,7 @@ export const addTransactionCapability = (
 		if (!mutex) {
 			mutex = new Mutex()
 			mutexCache.set(key, mutex)
-			logger.info({ key }, 'created new mutex')
+			logger.debug({ key }, 'created new mutex')
 		}
 
 		return mutex
