@@ -48,6 +48,7 @@ import {
 	isHostedPnUser,
 	isJidGroup,
 	isLidUser,
+	isJidNewsletter,
 	isPnUser,
 	jidDecode,
 	jidEncode,
@@ -639,6 +640,9 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 					},
 					content: binaryNodeContent
 				}
+				if (additionalNodes && additionalNodes.length > 0) {
+					;(stanza.content as BinaryNode[]).push(...additionalNodes)
+				}
 				logger.debug({ msgId }, `sending newsletter message to ${jid}`)
 				await sendNode(stanza)
 				return
@@ -1174,7 +1178,8 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 					additionalNodes.push({
 						tag: 'meta',
 						attrs: {
-							polltype: 'creation'
+							polltype: 'creation',
+							contenttype: isJidNewsletter(jid) ? 'text' : undefined,
 						}
 					} as BinaryNode)
 				} else if (isEventMsg) {
