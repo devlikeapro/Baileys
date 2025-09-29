@@ -50,7 +50,7 @@ import {
 	jidEncode,
 	jidNormalizedUser,
 	type JidWithDevice,
-	S_WHATSAPP_NET
+	S_WHATSAPP_NET, isJidNewsletter
 } from '../WABinary'
 import { USyncQuery, USyncUser } from '../WAUSync'
 import { makeNewsletterSocket } from './newsletter'
@@ -842,6 +842,9 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 					},
 					content: binaryNodeContent
 				}
+				if (additionalNodes && additionalNodes.length > 0) {
+					;(stanza.content as BinaryNode[]).push(...additionalNodes)
+				}
 				logger.debug({ msgId }, `sending newsletter message to ${jid}`)
 				await sendNode(stanza)
 				return
@@ -1334,9 +1337,13 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 					additionalNodes.push({
 						tag: 'meta',
 						attrs: {
-							polltype: 'creation'
+							polltype: 'creation',
 						}
 					} as BinaryNode)
+					if (isJidNewsletter(jid)) {
+						const node = additionalNodes.at(-1) as BinaryNode
+						node.attrs.contenttype = "text"
+					}
 				} else if (isEventMsg) {
 					additionalNodes.push({
 						tag: 'meta',
