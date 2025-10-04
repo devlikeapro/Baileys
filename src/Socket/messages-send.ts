@@ -2,6 +2,7 @@ import NodeCache from '@cacheable/node-cache'
 import { Boom } from '@hapi/boom'
 import { proto } from '../../WAProto/index.js'
 import { DEFAULT_CACHE_TTLS, WA_DEFAULT_EPHEMERAL } from '../Defaults'
+import { batched } from '../Utils/batched'
 import type {
 	AnyMessageContent,
 	MediaConnInfo,
@@ -56,6 +57,8 @@ import {
 } from '../WABinary'
 import { USyncQuery, USyncUser } from '../WAUSync'
 import { makeNewsletterSocket } from './newsletter'
+
+const BATCH_JID_SIZE = 5_000
 
 export const makeMessagesSocket = (config: SocketConfig) => {
 	const {
@@ -212,7 +215,7 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 	}
 
 	/** Fetch all the devices we've to send a message to */
-	const getUSyncDevices = async (
+	let getUSyncDevices = async (
 		jids: string[],
 		useCache: boolean,
 		ignoreZeroDevices: boolean
@@ -384,6 +387,8 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 		return deviceResults
 	}
 
+	getUSyncDevices = batched(getUSyncDevices, BATCH_JID_SIZE, (results: JidWithDevice[][]) => results.flat())
+
 	/**
 	 * Update Member Label
 	 */
@@ -414,7 +419,8 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 		)
 	}
 
-	const assertSessions = async (jids: string[], force?: boolean) => {
+
+	let assertSessions = async (jids: string[], force?: boolean) => {
 		let didFetchNewSession = false
 		const uniqueJids = [...new Set(jids)] // Deduplicate JIDs
 		const jidsRequiringFetch: string[] = []
@@ -484,6 +490,9 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 
 		return didFetchNewSession
 	}
+
+	// batch processing, return true if any
+	assertSessions = batched(assertSessions, BATCH_JID_SIZE, (results: boolean[]) => results.some(Boolean))
 
 	const sendPeerDataOperationMessage = async (
 		pdoMessage: proto.Message.IPeerDataOperationRequestMessage
