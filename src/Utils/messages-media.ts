@@ -9,7 +9,13 @@ import { join } from 'path'
 import { Readable, Transform } from 'stream'
 import { URL } from 'url'
 import { proto } from '../../WAProto/index.js'
-import { DEFAULT_ORIGIN, MEDIA_HKDF_KEY_MAPPING, MEDIA_PATH_MAP, type MediaType } from '../Defaults'
+import {
+	DEFAULT_ORIGIN,
+	MEDIA_HKDF_KEY_MAPPING,
+	MEDIA_NEWSLETTER_PATH_MAP,
+	MEDIA_PATH_MAP,
+	type MediaType
+} from '../Defaults'
 import type {
 	BaileysEventMap,
 	DownloadableMessage,
@@ -651,11 +657,11 @@ export const getWAUploadToServer = (
 	{ customUploadHosts, fetchAgent, logger, options }: SocketConfig,
 	refreshMediaConn: (force: boolean) => Promise<MediaConnInfo>
 ): WAMediaUploadFunction => {
-	return async (filePath, { mediaType, fileEncSha256B64, timeoutMs }) => {
+	return async (filePath, { mediaType, fileEncSha256B64, timeoutMs, newsletter }) => {
 		// send a query JSON to obtain the url & auth token to upload our media
 		let uploadInfo = await refreshMediaConn(false)
 
-		let urls: { mediaUrl: string; directPath: string; meta_hmac?: string; ts?: number; fbid?: number } | undefined
+		let urls: { mediaUrl: string; directPath: string; meta_hmac?: string; ts?: number; fbid?: number, handle?: string } | undefined
 		const hosts = [...customUploadHosts, ...uploadInfo.hosts]
 
 		fileEncSha256B64 = encodeBase64EncodedStringForUpload(fileEncSha256B64)
@@ -664,7 +670,9 @@ export const getWAUploadToServer = (
 			logger.debug(`uploading to "${hostname}"`)
 
 			const auth = encodeURIComponent(uploadInfo.auth) // the auth token
-			const url = `https://${hostname}${MEDIA_PATH_MAP[mediaType]}/${fileEncSha256B64}?auth=${auth}&token=${fileEncSha256B64}`
+			// Newsletter has different path where to upload
+			const media_path_map = newsletter ? MEDIA_NEWSLETTER_PATH_MAP : MEDIA_PATH_MAP
+			const url = `https://${hostname}${media_path_map[mediaType]}/${fileEncSha256B64}?auth=${auth}&token=${fileEncSha256B64}`
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			let result: any
 			try {
@@ -701,7 +709,8 @@ export const getWAUploadToServer = (
 						directPath: result.direct_path,
 						meta_hmac: result.meta_hmac,
 						fbid: result.fbid,
-						ts: result.ts
+						ts: result.ts,
+						handle: result.handle
 					}
 					break
 				} else {
@@ -732,6 +741,7 @@ export const getWAUploadToServer = (
 		if (!urls) {
 			throw new Boom('Media upload failed on all hosts', { statusCode: 500 })
 		}
+		logger.debug(urls, "Successfully uploaded media files")
 
 		return urls
 	}
