@@ -1135,6 +1135,16 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 						: disappearingMessagesInChat
 				await groupToggleEphemeral(jid, value)
 			} else {
+
+				// Newsletter fix for media
+				let mediaHandle = null
+				const waUploadToServerMediaHandle = async (encFilePath: any, opts: any) => {
+					opts.newsletter = isJidNewsletter(jid)
+					const result = await (waUploadToServer as any)(encFilePath, opts);
+					mediaHandle = result.handle;
+					return result;
+				};
+
 				const fullMsg = await generateWAMessage(jid, content, {
 					logger,
 					userJid,
@@ -1152,7 +1162,7 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 					//TODO: CACHE
 					getProfilePicUrl: sock.profilePictureUrl,
 					getCallLink: sock.createCallLink,
-					upload: waUploadToServer,
+					upload: waUploadToServerMediaHandle,
 					mediaCache: config.mediaCache,
 					options: config.options,
 					messageId: generateMessageIDV2(sock.user?.id),
@@ -1192,6 +1202,10 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 							event_type: 'creation'
 						}
 					} as BinaryNode)
+				}
+
+				if (mediaHandle){
+					additionalAttributes.media_id = mediaHandle
 				}
 
 				await relayMessage(jid, fullMsg.message!, {
