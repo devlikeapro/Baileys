@@ -347,7 +347,7 @@ export const makeMessagesRecvSocket = (config: SocketConfig) => {
 	const sendMessageAck = async (node: BinaryNode, errorCode?: number) => {
 		// If ws not connected - logs it and return
 		if (!ws.isOpen) {
-			logger.warn({ attrs: attrs }, 'Client not connected, cannot send ack')
+			logger.warn('Client not connected, cannot send ack')
 			return
 		}
 		const stanza = buildAckStanza(node, errorCode, authState.creds.me!.id)
