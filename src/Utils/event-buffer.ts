@@ -522,6 +522,15 @@ function append<E extends BufferableEvent>(
 			const msgUpdates = eventData as BaileysEventMap['messages.update']
 			for (const { key, update } of msgUpdates) {
 				const keyStr = stringifyMessageKey(key)
+				// A message's creation time is immutable. Some updates (e.g. delivery/read
+				// receipts) carry the receipt time in `messageTimestamp`; letting it through
+				// here would overwrite the original send/receive time when this update is
+				// consolidated into a buffered upsert or history message (see the upsert case
+				// above and its `absorbed prior message update` branch), collapsing unrelated
+				// messages to the same timestamp. Never let an update redefine it.
+				if ('messageTimestamp' in update) {
+					delete (update as Partial<WAMessage>).messageTimestamp
+				}
 				const existing = data.historySets.messages[keyStr] || data.messageUpserts[keyStr]?.message
 				if (existing) {
 					Object.assign(existing, update)
