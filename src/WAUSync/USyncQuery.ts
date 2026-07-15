@@ -73,7 +73,7 @@ export class USyncQuery {
 
 		if (listNode?.content && Array.isArray(listNode.content)) {
 			queryResult.list = listNode.content.reduce((acc: USyncQueryResultList[], node) => {
-				const id = node?.attrs.jid
+				const id = node?.attrs.jid || node?.attrs.pn_jid
 				if (id) {
 					const data = Array.isArray(node?.content)
 						? Object.fromEntries(
