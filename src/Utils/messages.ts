@@ -185,7 +185,9 @@ export const prepareWAMessageMedia = async (
 		const fileSha256B64 = fileSha256.toString('base64')
 		const { mediaUrl, directPath } = await options.upload(filePath, {
 			fileEncSha256B64: fileSha256B64,
-			mediaType: mediaType,
+			// honor the override so e.g. link preview thumbnails land on
+			// /newsletter/newsletter-thumbnail-link, not /newsletter/newsletter-image
+			mediaType: options.mediaTypeOverride || mediaType,
 			timeoutMs: options.mediaUploadTimeoutMs
 		})
 

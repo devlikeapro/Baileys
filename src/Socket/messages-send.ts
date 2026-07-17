@@ -1380,6 +1380,12 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 					mediaHandle = result.handle;
 					return result;
 				};
+				// Same newsletter routing for link preview thumbnails, but without
+				// capturing the media handle - text messages carry no media_id
+				const waUploadToServerLinkThumbnail = async (encFilePath: any, opts: any) => {
+					opts.newsletter = isJidNewsletter(jid)
+					return await (waUploadToServer as any)(encFilePath, opts);
+				};
 
 				const fullMsg = await generateWAMessage(jid, content, {
 					logger,
@@ -1392,8 +1398,13 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 								...(httpRequestOptions || {})
 							},
 							logger,
+							// jid + newsletter-aware uploader: channels need the HQ
+							// thumbnail unencrypted (plaintext newsletter upload path)
+							jid,
 							uploadImage:
-								generateHighQualityLinkPreview || options.linkPreviewHighQuality ? waUploadToServer : undefined
+								generateHighQualityLinkPreview || options.linkPreviewHighQuality
+									? waUploadToServerLinkThumbnail
+									: undefined
 						}),
 					//TODO: CACHE
 					getProfilePicUrl: sock.profilePictureUrl,
