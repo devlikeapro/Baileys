@@ -1394,7 +1394,9 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 						getUrlInfo(text, {
 							thumbnailWidth: linkPreviewImageThumbnailWidth,
 							fetchOpts: {
-								timeout: 3_000,
+								// 3s was too tight - slow sites silently lost the whole
+								// preview ("url generation failed"); override via config.options
+								timeout: 10_000,
 								...(httpRequestOptions || {})
 							},
 							logger,
