@@ -1150,7 +1150,8 @@ export const makeSocket = (config: SocketConfig) => {
 	 */
 	const fetchNewChatMessageCap = async () => {
 		return executeWMexQuery<NewChatMessageCapInfo>(
-			{ input: { type: 'INDIVIDUAL_NEW_CHAT_MSG' } },
+			// The bucket WhatsApp Web queries (WAWebMexFetchNewChatMessageCappingInfoJob)
+			{ input: { type: 'INDIVIDUAL_NEW_CHAT_THREAD' } },
 			QueryIds.MESSAGE_CAPPING_INFO,
 			XWAPaths.xwa2_message_capping_info,
 			query,
