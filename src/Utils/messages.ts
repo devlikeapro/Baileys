@@ -298,7 +298,7 @@ export const prepareWAMessageMedia = async (
 			logger?.debug('removed tmp files')
 		} catch (error) {
 			logger?.warn('failed to remove tmp file')
-		}}, 5000)
+		}}, 5000).unref()
 	})
 
 	const obj = WAProto.Message.fromObject({

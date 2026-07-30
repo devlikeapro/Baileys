@@ -2,6 +2,9 @@ import WebSocket from 'ws'
 import { DEFAULT_ORIGIN } from '../../Defaults'
 import { AbstractSocketClient } from './types'
 
+// how long to wait for the close handshake before destroying the underlying TCP socket
+const CLOSE_TIMEOUT_MS = 5_000
+
 export class WebSocketClient extends AbstractSocketClient {
 	protected socket: WebSocket | null = null
 
@@ -41,19 +44,27 @@ export class WebSocketClient extends AbstractSocketClient {
 	}
 
 	async close() {
-		if (!this.socket) {
+		const socket = this.socket
+		if (!socket) {
 			return
 		}
 
-		const closePromise = new Promise<void>(resolve => {
-			this.socket?.once('close', resolve)
-		})
-
-		this.socket.close()
-
-		await closePromise
-
 		this.socket = null
+		// 'close' has already fired: ws.close() would be a no-op and the event will never come again
+		if (socket.readyState === WebSocket.CLOSED) {
+			return
+		}
+
+		await new Promise<void>(resolve => {
+			// on a half-open TCP connection the peer never answers the close frame,
+			// so destroy the socket after a timeout; terminate() emits 'close' too, resolving the same way
+			const timer = setTimeout(() => socket.terminate(), CLOSE_TIMEOUT_MS)
+			socket.once('close', () => {
+				clearTimeout(timer)
+				resolve()
+			})
+			socket.close()
+		})
 	}
 	send(str: string | Uint8Array, cb?: (err?: Error) => void): boolean {
 		this.socket?.send(str, cb)

@@ -222,7 +222,7 @@ export const makeMessagesRecvSocket = (config: SocketConfig) => {
 				logger.debug({ messageKey }, 'PDO message without response after 8 seconds. Phone possibly offline')
 				await placeholderResendCache.del(messageKey?.id!)
 			}
-		}, 8_000)
+		}, 8_000).unref()
 
 		return sendPeerDataOperationMessage(pdoMessage)
 	}

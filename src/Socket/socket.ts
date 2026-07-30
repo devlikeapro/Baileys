@@ -527,16 +527,22 @@ export const makeSocket = (config: SocketConfig) => {
 		}
 
 		// Add timeout protection
+		let uploadTimeout: NodeJS.Timeout | undefined
 		uploadPreKeysPromise = Promise.race([
 			uploadLogic(0),
-			new Promise<void>((_, reject) =>
-				setTimeout(() => reject(new Boom('Pre-key upload timeout', { statusCode: 408 })), UPLOAD_TIMEOUT)
-			)
+			new Promise<void>((_, reject) => {
+				uploadTimeout = setTimeout(
+					() => reject(new Boom('Pre-key upload timeout', { statusCode: 408 })),
+					UPLOAD_TIMEOUT
+				)
+			})
 		])
 
 		try {
 			await uploadPreKeysPromise
 		} finally {
+			// the race leaves the timer pending when uploadLogic settles first, keeping the process alive
+			clearTimeout(uploadTimeout)
 			uploadPreKeysPromise = null
 		}
 	}
