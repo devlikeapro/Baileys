@@ -726,10 +726,14 @@ export const generateWAMessageFromContent = (
 	const timestamp = unixTimestampSeconds(options.timestamp)
 	const { quoted, userJid } = options
 
-	if (quoted && !isJidNewsletter(jid)) {
-		const participant = quoted.key.fromMe
+	if (quoted) {
+		let participant = quoted.key.fromMe
 			? userJid // TODO: Add support for LIDs
 			: quoted.participant || quoted.key.participant || quoted.key.remoteJid
+		if (isJidNewsletter(jid)) {
+			// channels expect the channel jid itself as participant; fromMe on stored channel msgs is unreliable
+			participant = jid
+		}
 
 		let quotedMsg = normalizeMessageContent(quoted.message)!
 		const msgType = getContentType(quotedMsg)!
