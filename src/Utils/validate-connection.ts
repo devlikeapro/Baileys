@@ -126,7 +126,8 @@ export const generateRegistrationNode = (
 			supportMessageAssociation: true,
 			supportGroupHistory: false,
 			onDemandReady: undefined,
-			supportGuestChat: undefined
+			supportGuestChat: undefined,
+			thumbnailSyncDaysLimit: 60
 		},
 		version: {
 			primary: 10,
