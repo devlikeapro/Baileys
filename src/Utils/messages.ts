@@ -38,6 +38,7 @@ import {
 	getAudioDuration,
 	getAudioWaveform,
 	getRawMediaUploadData,
+	isCdnUrlExpired,
 	type MediaDownloadOptions
 } from './messages-media'
 import { shouldIncludeReportingToken } from './reporting-utils'
@@ -1077,6 +1078,25 @@ type DownloadMediaMessageContext = {
 
 const REUPLOAD_REQUIRED_STATUS = [410, 404]
 
+const getErrorStatus = (error: any): number | undefined => error?.output?.statusCode ?? error?.status
+
+const isMediaGone = (error: any): boolean => {
+	const status = getErrorStatus(error)
+	if (typeof status === 'number' && REUPLOAD_REQUIRED_STATUS.includes(status)) {
+		return true
+	}
+
+	if (status === 403 && typeof error?.data?.body === 'string' && error.data.body.includes('URL signature expired')) {
+		return true
+	}
+
+	if (status === 403 && isCdnUrlExpired(error?.data?.url)) {
+		return true
+	}
+
+	return false
+}
+
 /**
  * Downloads the given message. Throws an error if it's not a media message
  */
@@ -1087,12 +1107,8 @@ export const downloadMediaMessage = async <Type extends 'buffer' | 'stream'>(
 	ctx?: DownloadMediaMessageContext
 ) => {
 	const result = await downloadMsg().catch(async error => {
-		if (
-			ctx &&
-			typeof error?.status === 'number' && // treat errors with status as HTTP failures requiring reupload
-			REUPLOAD_REQUIRED_STATUS.includes(error.status as number)
-		) {
-			ctx.logger.info({ key: message.key }, 'sending reupload media request...')
+		if (ctx && isMediaGone(error)) {
+			ctx.logger.info({ key: message.key, status: getErrorStatus(error) }, 'sending reupload media request...')
 			// request reupload
 			message = await ctx.reuploadRequest(message)
 			const result = await downloadMsg()

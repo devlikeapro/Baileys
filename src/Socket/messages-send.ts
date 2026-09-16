@@ -1343,7 +1343,7 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 
 						return true
 					}
-				})
+				}, config.defaultQueryTimeoutMs)
 			])
 
 			if (error) {

@@ -375,7 +375,13 @@ export const getHttpStream = async (url: string | URL, options: RequestInit & { 
 		headers: options.headers as HeadersInit
 	})
 	if (!response.ok) {
-		throw new Boom(`Failed to fetch stream from ${url}`, { statusCode: response.status, data: { url } })
+		// Get body so we can later check for expired-signature 403
+		let body: string | undefined
+		if (response.status === 403) {
+			body = await response.text().catch(() => undefined)
+		}
+
+		throw new Boom(`Failed to fetch stream from ${url}`, { statusCode: response.status, data: { url, body } })
 	}
 
 	// @ts-ignore Node18+ Readable.fromWeb exists
@@ -529,6 +535,19 @@ export type MediaDownloadOptions = {
 export const getUrlFromDirectPath = (directPath: string, host: string = DEF_MEDIA_HOST) =>
 	`https://${host}${directPath}`
 
+/** Whether the CDN URL's `oe` signature expiry (hex unix seconds) is already in the past */
+export const isCdnUrlExpired = (url: string | null | undefined): boolean => {
+	if (!url) return false
+	try {
+		const oe = new URL(url).searchParams.get('oe')
+		if (!oe) return false
+		const expiresAt = parseInt(oe, 16)
+		return !isNaN(expiresAt) && expiresAt * 1000 <= Date.now()
+	} catch {
+		return false
+	}
+}
+
 const extractHost = (url: string | null | undefined): string | undefined => {
 	if (!url) return undefined
 	try {
@@ -550,6 +569,9 @@ export const downloadContentFromMessage = async (
 	const downloadUrl = directPath ? getUrlFromDirectPath(directPath, fallbackHost) : url
 	if (!downloadUrl) {
 		throw new Boom('No valid media URL or directPath present in message', { statusCode: 400 })
+	}
+	if (isCdnUrlExpired(downloadUrl)) {
+		throw new Boom(`URL signature expired for ${downloadUrl}`, { statusCode: 403, data: { url: downloadUrl } })
 	}
 	if (!decrypt) {
 		return getHttpStream(downloadUrl, opts.options)
