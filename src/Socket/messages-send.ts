@@ -690,19 +690,35 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 			}
 
 			if (isNewsletter) {
-				const patched = patchMessageBeforeSending ? await patchMessageBeforeSending(message, []) : message
-				const bytes = encodeNewsletterMessage(patched as proto.IMessage)
-				binaryNodeContent.push({
-					tag: 'plaintext',
-					attrs: extraAttrs,
-					content: bytes
-				})
+				const protocolMessage = message.editedMessage?.message?.protocolMessage || message.protocolMessage
+				const isEdit = protocolMessage?.type === proto.Message.ProtocolMessage.Type.MESSAGE_EDIT
+				const payload = isEdit ? (protocolMessage?.editedMessage as proto.IMessage) : message
+				const payloadMediaType = getMediaType(payload)
+				if (payloadMediaType) {
+					extraAttrs['mediatype'] = payloadMediaType
+				}
+
+				const plaintext = protocolMessage?.type === proto.Message.ProtocolMessage.Type.REVOKE
+				if (plaintext) {
+					binaryNodeContent.push({
+						tag: 'plaintext',
+						attrs: extraAttrs
+					})
+				} else {
+					const patched = patchMessageBeforeSending ? await patchMessageBeforeSending(payload, []) : payload
+					const bytes = encodeNewsletterMessage(patched as proto.IMessage)
+					binaryNodeContent.push({
+						tag: 'plaintext',
+						attrs: extraAttrs,
+						content: bytes
+					})
+				}
 				const stanza: BinaryNode = {
 					tag: 'message',
 					attrs: {
 						to: jid,
 						id: msgId,
-						type: getMessageType(message),
+						type: getMessageType(payload),
 						...(additionalAttributes || {})
 					},
 					content: binaryNodeContent
