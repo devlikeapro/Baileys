@@ -70,6 +70,18 @@ describe('extractGroupMetadata', () => {
 		expect(() => extractGroupMetadata(result)).toThrow(/missing group id/)
 	})
 
+	it('parses member_share_group_history_mode', () => {
+		const shareHistoryNode = (mode: string): BinaryNode => ({
+			...minimalGroupNode(),
+			content: [{ tag: 'member_share_group_history_mode', attrs: {}, content: mode }]
+		})
+		const iq = (group: BinaryNode): BinaryNode => ({ tag: 'iq', attrs: { type: 'result' }, content: [group] })
+
+		expect(extractGroupMetadata(iq(shareHistoryNode('all_member_share'))).memberShareHistoryMode).toBe(true)
+		expect(extractGroupMetadata(iq(shareHistoryNode('admin_share'))).memberShareHistoryMode).toBe(false)
+		expect(extractGroupMetadata(iq(minimalGroupNode())).memberShareHistoryMode).toBe(false)
+	})
+
 	it('uses default code 500 when <error> has no code attribute', () => {
 		const result: BinaryNode = {
 			tag: 'iq',

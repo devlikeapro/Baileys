@@ -44,6 +44,8 @@ export interface GroupMetadata {
 	announce?: boolean
 	/** is set when the group also allows members to add participants */
 	memberAddMode?: boolean
+	/** is set when the group also allows members to share message history with new members */
+	memberShareHistoryMode?: boolean
 	/** Request approval to join the group */
 	joinApprovalMode?: boolean
 	/** is this a community */

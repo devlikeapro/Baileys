@@ -1,7 +1,14 @@
 import { Boom } from '@hapi/boom'
 import { proto } from '../../WAProto/index.js'
-import type { GroupMetadata, GroupParticipant, ParticipantAction, SocketConfig, WAMessageKey } from '../Types'
-import { WAMessageAddressingMode, WAMessageStubType } from '../Types'
+import type {
+	GroupMetadata,
+	GroupParticipant,
+	GroupUpdatePropertyResponse,
+	ParticipantAction,
+	SocketConfig,
+	WAMessageKey
+} from '../Types'
+import { QueryIds, WAMessageAddressingMode, WAMessageStubType, XWAPaths } from '../Types'
 import { generateMessageIDV2, unixTimestampSeconds } from '../Utils'
 import {
 	type BinaryNode,
@@ -14,10 +21,11 @@ import {
 	jidNormalizedUser
 } from '../WABinary'
 import { makeChatsSocket } from './chats'
+import { executeWMexQuery } from './mex'
 
 export const makeGroupsSocket = (config: SocketConfig) => {
 	const sock = makeChatsSocket(config)
-	const { authState, ev, query, upsertMessage } = sock
+	const { authState, ev, query, upsertMessage, generateMessageTag } = sock
 
 	const groupQuery = async (jid: string, type: 'get' | 'set', content: BinaryNode[]) =>
 		query({
@@ -292,6 +300,20 @@ export const makeGroupsSocket = (config: SocketConfig) => {
 		groupMemberAddMode: async (jid: string, mode: 'admin_add' | 'all_member_add') => {
 			await groupQuery(jid, 'set', [{ tag: 'member_add_mode', attrs: {}, content: mode }])
 		},
+		groupMemberShareHistoryMode: async (jid: string, mode: 'admin_share' | 'all_member_share') => {
+			const value = mode === 'all_member_share' ? 'ALL_MEMBER_SHARE' : 'ADMIN_SHARE'
+			const result = await executeWMexQuery<GroupUpdatePropertyResponse>(
+				{ group_id: jid, update: { member_share_group_history_mode: value } },
+				QueryIds.UPDATE_GROUP_PROPERTY,
+				XWAPaths.xwa2_group_update_property,
+				query,
+				generateMessageTag
+			)
+			// WA Web fails only when a state is present and not ACTIVE
+			if (result?.state && result.state !== 'ACTIVE') {
+				throw new Boom(`Failed to update group property, state '${result.state}'`, { statusCode: 400, data: result })
+			}
+		},
 		groupJoinApprovalMode: async (jid: string, mode: 'on' | 'off') => {
 			await groupQuery(jid, 'set', [
 				{ tag: 'membership_approval_mode', attrs: {}, content: [{ tag: 'group_join', attrs: { state: mode } }] }
@@ -338,6 +360,8 @@ export const extractGroupMetadata = (result: BinaryNode) => {
 	const groupId = group.attrs.id.includes('@') ? group.attrs.id : jidEncode(group.attrs.id, 'g.us')
 	const eph = getBinaryNodeChild(group, 'ephemeral')?.attrs.expiration
 	const memberAddMode = getBinaryNodeChildString(group, 'member_add_mode') === 'all_member_add'
+	const memberShareHistoryMode =
+		getBinaryNodeChildString(group, 'member_share_group_history_mode') === 'all_member_share'
 	const metadata: GroupMetadata = {
 		id: groupId,
 		notify: group.attrs.notify,
@@ -366,6 +390,7 @@ export const extractGroupMetadata = (result: BinaryNode) => {
 		isCommunityAnnounce: !!getBinaryNodeChild(group, 'default_sub_group'),
 		joinApprovalMode: !!getBinaryNodeChild(group, 'membership_approval_mode'),
 		memberAddMode,
+		memberShareHistoryMode,
 		participants: getBinaryNodeChildren(group, 'participant').map(({ attrs }) => {
 			// TODO: Store LID MAPPINGS
 			return {

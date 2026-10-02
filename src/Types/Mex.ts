@@ -17,7 +17,8 @@ export enum XWAPaths {
 	xwa2_newsletter_delete_v2 = 'xwa2_newsletter_delete_v2',
 	xwa2_fetch_account_reachout_timelock = 'xwa2_fetch_account_reachout_timelock',
 	xwa2_message_capping_info = 'xwa2_message_capping_info',
-	xwa2_newsletter_subscribed = 'xwa2_newsletter_subscribed'
+	xwa2_newsletter_subscribed = 'xwa2_newsletter_subscribed',
+	xwa2_group_update_property = 'xwa2_group_update_property'
 }
 
 export enum QueryIds {
@@ -35,7 +36,13 @@ export enum QueryIds {
 	DELETE = '30062808666639665',
 	REACHOUT_TIMELOCK = '23983697327930364',
 	MESSAGE_CAPPING_INFO = '24503548349331633',
-	SUBSCRIBED = '6388546374527196'
+	SUBSCRIBED = '6388546374527196',
+	UPDATE_GROUP_PROPERTY = '9418211574894172'
+}
+
+export type GroupUpdatePropertyResponse = {
+	id?: string
+	state?: string
 }
 export type NewsletterUpdate = {
 	name?: string
