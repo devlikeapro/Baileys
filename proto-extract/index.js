@@ -407,7 +407,13 @@ async function findAppModules() {
           info.flags.splice(info.flags.indexOf('packed'));
           info.packed = ' [packed=true]';
         }
-        if (completeFlags && info.flags.length === 0 && !info.type.includes('map')) {
+        // proto3 has no `required`; WAProto.proto has always emitted those fields flagless
+        const requiredIdx = info.flags.indexOf('required');
+        if (requiredIdx !== -1) {
+          info.flags.splice(requiredIdx, 1);
+          info.required = true;
+        }
+        if (completeFlags && info.flags.length === 0 && !info.required && !info.type.includes('map')) {
           info.flags.push('optional');
         }
 
