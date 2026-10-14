@@ -502,6 +502,15 @@ async function findAppModules() {
     }
   }
 
+  // keep types the bundle dropped but Baileys still decodes (see extra.proto)
+  const extra = await fs.readFile('./extra.proto', 'utf8');
+  for (const block of extra.split(/\n(?=message |enum )/)) {
+    const name = block.match(/^(?:message|enum) (\w+)/)?.[1];
+    if (name && !decodedProtoMap[name]) {
+      decodedProtoMap[name] = block.trim() + '\n';
+    }
+  }
+
   const decodedProto = Object.keys(decodedProtoMap).sort();
   const sortedStr = decodedProto.map((d) => decodedProtoMap[d]).join('\n');
 

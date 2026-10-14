@@ -1,0 +1,12 @@
+// Types Baileys still uses that WA Web no longer ships in its bootstrap bundle.
+// Appended to WAProto.proto by index.js unless the bundle defines them again.
+message LIDMigrationMapping {
+    uint64 pn = 1;
+    uint64 assignedLid = 2;
+    optional uint64 latestLid = 3;
+}
+
+message LIDMigrationMappingSyncPayload {
+    repeated LIDMigrationMapping pnToLidMappings = 1;
+    optional uint64 chatDbMigrationTimestamp = 2;
+}
