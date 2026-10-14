@@ -79,8 +79,8 @@ export const generateLoginNode = (userJid: string, config: SocketConfig): proto.
 		pull: true,
 		username: +user,
 		device: device,
-		// TODO: investigate (hard set as false atm)
-		lidDbMigrated: false
+		lc: 1,
+		lidDbMigrated: true
 	}
 	return proto.ClientPayload.fromObject(payload)
 }
