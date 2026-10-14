@@ -115,7 +115,7 @@ export const generateRegistrationNode = (
 			storageQuotaMb: 10240,
 			inlineInitialPayloadInE2EeMsg: true,
 			recentSyncDaysLimit: undefined,
-			supportCallLogHistory: false,
+			supportCallLogHistory: true,
 			supportBotUserAgentChatHistory: true,
 			supportCagReactionsAndPolls: true,
 			supportBizHostedMsg: true,
@@ -124,10 +124,12 @@ export const generateRegistrationNode = (
 			supportFbidBotChatHistory: true,
 			supportAddOnHistorySyncMigration: undefined,
 			supportMessageAssociation: true,
-			supportGroupHistory: false,
+			supportGroupHistory: true,
 			onDemandReady: undefined,
 			supportGuestChat: undefined,
-			thumbnailSyncDaysLimit: 60
+			thumbnailSyncDaysLimit: 60,
+			supportManusHistory: true,
+			supportHatchHistory: true
 		},
 		version: {
 			primary: 10,
