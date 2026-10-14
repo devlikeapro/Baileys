@@ -512,7 +512,11 @@ async function findAppModules() {
   }
 
   const decodedProto = Object.keys(decodedProtoMap).sort();
-  const sortedStr = decodedProto.map((d) => decodedProtoMap[d]).join('\n');
+  // nested messages carry the indented separator line of their parent, drop the trailing whitespace
+  const sortedStr = decodedProto
+    .map((d) => decodedProtoMap[d])
+    .join('\n')
+    .replace(/^[ \t]+$/gm, '');
 
   const decodedProtoStr = `syntax = "proto3";\npackage proto;\n\n/// WhatsApp Version: ${whatsAppVersion}\n\n${sortedStr}`;
   const destinationPath = '../WAProto/WAProto.proto';
