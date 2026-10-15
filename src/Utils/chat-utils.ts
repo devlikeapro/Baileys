@@ -939,14 +939,16 @@ export const processSyncAction = (
 			ev.emit('chats.delete', [id!])
 		}
 	} else if (action?.labelEditAction) {
-		const { name, color, deleted, predefinedId } = action.labelEditAction
+		const { name, color, deleted, predefinedId, type, isActive } = action.labelEditAction
 
 		ev.emit('labels.edit', {
 			id: id!,
 			name: name!,
 			color: color!,
 			deleted: deleted!,
-			predefinedId: predefinedId ? String(predefinedId) : undefined
+			predefinedId: predefinedId ? String(predefinedId) : undefined,
+			type: type ?? undefined,
+			isActive: isActive ?? undefined
 		})
 	} else if (action?.labelAssociationAction) {
 		ev.emit('labels.association', {

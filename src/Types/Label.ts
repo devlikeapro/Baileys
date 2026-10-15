@@ -9,6 +9,10 @@ export interface Label {
 	deleted: boolean
 	/** WhatsApp has 5 predefined labels (New customer, New order & etc) */
 	predefinedId?: string
+	/** WhatsApp list type (LabelEditAction.ListType): CUSTOM/PREDEFINED/LEAD are user labels, UNREAD/GROUPS/FAVORITES... are built-in lists */
+	type?: number
+	/** false for lists the user turned off */
+	isActive?: boolean
 }
 
 export interface LabelActionBody {
