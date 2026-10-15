@@ -748,7 +748,11 @@ export const chatModificationToAppPatch = (mod: ChatModification, jid: string) =
 					name: mod.addLabel.name,
 					color: mod.addLabel.color,
 					predefinedId: mod.addLabel.predefinedId,
-					deleted: mod.addLabel.deleted
+					deleted: mod.addLabel.deleted,
+					type: mod.addLabel.deleted
+						? undefined
+						: (mod.addLabel.type ?? proto.SyncActionValue.LabelEditAction.ListType.CUSTOM),
+					isActive: mod.addLabel.deleted ? undefined : (mod.addLabel.isActive ?? true)
 				}
 			},
 			index: ['label_edit', mod.addLabel.id],

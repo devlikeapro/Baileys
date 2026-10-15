@@ -25,6 +25,10 @@ export interface LabelActionBody {
 	deleted?: boolean
 	/** WhatsApp has 5 predefined labels (New customer, New order & etc) */
 	predefinedId?: number
+	/** WhatsApp list type, CUSTOM when not set */
+	type?: number
+	/** true when not set */
+	isActive?: boolean
 }
 
 /** WhatsApp has 20 predefined colors */
