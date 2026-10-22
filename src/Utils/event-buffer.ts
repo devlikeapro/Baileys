@@ -300,13 +300,24 @@ function append<E extends BufferableEvent>(
 				const existingChat = data.historySets.chats[id]
 				if (existingChat) {
 					existingChat.endOfHistoryTransferType = chat.endOfHistoryTransferType
+					if (chat.participant?.length) {
+						existingChat.participant = chat.participant
+					}
+
+					continue
 				}
 
-				if (!existingChat && !historyCache.has(id)) {
+				if (!historyCache.has(id)) {
 					data.historySets.chats[id] = chat
 					historyCache.add(id)
 
 					absorbingChatUpdate(chat)
+					continue
+				}
+
+				// NON_BLOCKING_DATA repeats an already flushed chat with only its participants (member labels), keep it
+				if (chat.participant?.length) {
+					data.historySets.chats[id] = chat
 				}
 			}
 
