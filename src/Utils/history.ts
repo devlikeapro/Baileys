@@ -4,7 +4,7 @@ import { createInflate, inflate } from 'zlib'
 import { proto } from '../../WAProto/index.js'
 import type { Chat, Contact, LIDMapping, WAMessage } from '../Types'
 import { WAMessageStubType } from '../Types'
-import { isHostedLidUser, isHostedPnUser, isLidUser, isPnUser } from '../WABinary'
+import { isHostedLidUser, isHostedPnUser, isJidGroup, isLidUser, isPnUser, jidNormalizedUser } from '../WABinary'
 import { toNumber } from './generics'
 import type { ILogger } from './logger.js'
 import { normalizeMessageContent } from './messages'
@@ -93,6 +93,10 @@ export const processHistoryMessage = (item: proto.IHistorySync, logger?: ILogger
 
 				for (const item of msgs) {
 					const message = item.message! as WAMessage
+					if (isJidGroup(chatId) && !message.key.participant && message.participant) {
+						message.key.participant = jidNormalizedUser(message.participant)
+					}
+
 					messages.push(message)
 
 					if (!chat.messages?.length) {
