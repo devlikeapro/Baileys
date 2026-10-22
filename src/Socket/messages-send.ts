@@ -437,7 +437,7 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 					{
 						tag: 'meta',
 						attrs: {
-							tag_reason: 'user_update',
+							tag_reason: memberLabel ? 'user_update' : 'user_delete',
 							appdata: 'member_tag'
 						},
 						content: undefined
