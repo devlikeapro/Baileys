@@ -130,6 +130,15 @@ export const processHistoryMessage = (item: proto.IHistorySync, logger?: ILogger
 			}
 
 			break
+		case proto.HistorySync.HistorySyncType.NON_BLOCKING_DATA:
+			// participants-only conversations carrying the group member labels
+			for (const chat of (item.conversations || []) as Chat[]) {
+				if (chat.participant?.length) {
+					chats.push(chat)
+				}
+			}
+
+			break
 	}
 
 	return {
