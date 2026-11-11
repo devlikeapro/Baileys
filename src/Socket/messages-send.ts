@@ -172,7 +172,8 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 		jid: string,
 		participant: string | undefined,
 		messageIds: string[],
-		type: MessageReceiptType
+		type: MessageReceiptType,
+		receiptClass?: 'status'
 	) => {
 		if (!messageIds || messageIds.length === 0) {
 			throw new Boom('missing ids in receipt')
@@ -201,6 +202,10 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 
 		if (type) {
 			node.attrs.type = type
+		}
+
+		if (receiptClass) {
+			node.attrs.class = receiptClass
 		}
 
 		const remainingMessageIds = messageIds.slice(1)

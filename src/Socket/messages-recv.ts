@@ -1760,7 +1760,8 @@ export const makeMessagesRecvSocket = (config: SocketConfig) => {
 						}
 
 						acked = true
-						await sendReceipt(msg.key.remoteJid!, participant!, [msg.key.id!], type)
+						const receiptClass = node.tag === 'status' ? 'status' : undefined
+						await sendReceipt(msg.key.remoteJid!, participant!, [msg.key.id!], type, receiptClass)
 
 						// send ack for history message
 						const isAnyHistoryMsg = getHistoryMsg(msg.message!)
@@ -1956,6 +1957,7 @@ export const makeMessagesRecvSocket = (config: SocketConfig) => {
 	const offlineNodeProcessor = makeOfflineNodeProcessor(
 		new Map<MessageType, (node: BinaryNode) => Promise<void>>([
 			['message', handleMessage],
+			['status', handleMessage],
 			['call', handleCall],
 			['receipt', handleReceipt],
 			['notification', handleNotification]
@@ -2003,6 +2005,11 @@ export const makeMessagesRecvSocket = (config: SocketConfig) => {
 	// recv a message
 	ws.on('CB:message', async (node: BinaryNode) => {
 		await processNode('message', node, 'processing message', handleMessage)
+	})
+
+	// group statuses come as encrypted <status> stanzas
+	ws.on('CB:status', async (node: BinaryNode) => {
+		await processNode('status', node, 'processing status', handleMessage)
 	})
 
 	ws.on('CB:call', async (node: BinaryNode) => {

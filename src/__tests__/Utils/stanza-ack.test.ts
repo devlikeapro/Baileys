@@ -23,6 +23,22 @@ describe('buildAckStanza', () => {
 			})
 		})
 
+		it('should build ACK for status node', () => {
+			const node: BinaryNode = {
+				tag: 'status',
+				attrs: {
+					id: 'status-001',
+					from: '120363000000000000@g.us',
+					participant: '111111111111111@lid',
+					type: 'text'
+				}
+			}
+
+			const ack = buildAckStanza(node)
+			expect(ack.attrs.class).toBe('status')
+			expect(ack.attrs.participant).toBe('111111111111111@lid')
+		})
+
 		it('should build ACK for receipt node', () => {
 			const node: BinaryNode = {
 				tag: 'receipt',

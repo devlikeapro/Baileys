@@ -82,5 +82,14 @@ describe('decodeMessageNode', () => {
 			expect(result.fullMessage.key.participant).toBe(PEER_ID)
 			expect(result.author).toBe(PEER_ID)
 		})
+
+		it('decodes a group status <status> stanza as a group message', () => {
+			const stanza: BinaryNode = { ...message({ id: 'MSG_GS', from: GROUP_ID, participant: PEER_ID }), tag: 'status' }
+			const result = decodeMessageNode(stanza, ME_ID, ME_LID)
+
+			expect(result.fullMessage.key.remoteJid).toBe(GROUP_ID)
+			expect(result.fullMessage.key.participant).toBe(PEER_ID)
+			expect(result.author).toBe(PEER_ID)
+		})
 	})
 })
