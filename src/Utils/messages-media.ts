@@ -548,10 +548,15 @@ export const isCdnUrlExpired = (url: string | null | undefined): boolean => {
 	}
 }
 
+// Some media messages (stickers, voice notes, images) carry a `url` on `a.whatsapp.net`,
+// which doesn't resolve. Their `directPath` is valid, so it must go to the default host.
+const PLACEHOLDER_MEDIA_HOST = 'a.whatsapp.net'
+
 const extractHost = (url: string | null | undefined): string | undefined => {
 	if (!url) return undefined
 	try {
-		return new URL(url).host
+		const host = new URL(url).host
+		return host === PLACEHOLDER_MEDIA_HOST ? undefined : host
 	} catch {
 		return undefined
 	}
