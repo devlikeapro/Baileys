@@ -47,6 +47,7 @@ import {
 	MISSING_KEYS_ERROR_TEXT,
 	NACK_REASONS,
 	NO_MESSAGE_FOUND_ERROR_TEXT,
+	normalizeStatusStanzaId,
 	SERVER_ERROR_CODES,
 	toNumber,
 	unixTimestampSeconds,
@@ -1502,9 +1503,11 @@ export const makeMessagesRecvSocket = (config: SocketConfig) => {
 							if (attrs.participant) {
 								const updateKey: keyof MessageUserReceipt =
 									status === proto.WebMessageInfo.Status.DELIVERY_ACK ? 'receiptTimestamp' : 'readTimestamp'
+								// statuses are keyed by the base id, see cleanMessage
+								const receiptIds = isJidStatusBroadcast(remoteJid!) ? ids.map(normalizeStatusStanzaId) : ids
 								ev.emit(
 									'message-receipt.update',
-									ids.map(id => ({
+									receiptIds.map(id => ({
 										key: { ...key, id },
 										receipt: {
 											userJid: jidNormalizedUser(attrs.participant),

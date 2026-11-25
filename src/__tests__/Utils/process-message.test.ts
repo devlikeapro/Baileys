@@ -53,6 +53,32 @@ describe('cleanMessage', () => {
 		})
 	})
 
+	describe('Batched status id', () => {
+		it('should cut __part__ from a status id', () => {
+			const message = createBaseMessage({
+				remoteJid: 'status@broadcast',
+				id: 'AAAA__part__abcdefgh',
+				participant: '1234567890@lid'
+			})
+
+			cleanMessage(message, meId, meLid)
+
+			expect(message.key.id).toBe('AAAA')
+		})
+
+		it('should keep __part__ outside of status@broadcast', () => {
+			const message = createBaseMessage({
+				remoteJid: '123456-7890@g.us',
+				id: 'AAAA__part__abcdefgh',
+				participant: '1234567890@lid'
+			})
+
+			cleanMessage(message, meId, meLid)
+
+			expect(message.key.id).toBe('AAAA__part__abcdefgh')
+		})
+	})
+
 	describe('Hosted JID Handling', () => {
 		it('should correctly normalize a hosted PN JID back to PN form', () => {
 			const hostedJid = '1234567890:99@hosted'

@@ -1,4 +1,4 @@
-import { BufferJSON } from '../../Utils/generics'
+import { BufferJSON, normalizeStatusStanzaId } from '../../Utils/generics'
 
 describe('BufferJSON', () => {
 	const originalObject = {
@@ -66,5 +66,16 @@ describe('BufferJSON', () => {
 	it('should correctly handle an empty object', () => {
 		const revived = JSON.parse('{}', BufferJSON.reviver)
 		expect(revived).toEqual({})
+	})
+})
+
+describe('normalizeStatusStanzaId', () => {
+	it.each([
+		['AAAA__part__abcdefgh', 'AAAA'],
+		['AAAA', 'AAAA'],
+		['__part__abcdefgh', '__part__abcdefgh'],
+		['', '']
+	])('%j => %j', (id, expected) => {
+		expect(normalizeStatusStanzaId(id)).toBe(expected)
 	})
 })

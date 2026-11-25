@@ -202,6 +202,14 @@ export const generateMessageIDV2 = (userId?: string): string => {
 // generate a random ID to attach to a message
 export const generateMessageID = () => '3EB0' + randomBytes(18).toString('hex').toUpperCase()
 
+const STATUS_STANZA_ID_PART = '__part__'
+
+/** Batched status stanza id "<id>__part__<suffix>" -> "<id>", the id the status is stored by */
+export const normalizeStatusStanzaId = (id: string) => {
+	const idx = id.indexOf(STATUS_STANZA_ID_PART)
+	return idx > 0 ? id.slice(0, idx) : id
+}
+
 export function bindWaitForEvent<T extends keyof BaileysEventMap>(ev: BaileysEventEmitter, event: T) {
 	return async (check: (u: BaileysEventMap[T]) => Promise<boolean | undefined>, timeoutMs?: number) => {
 		let listener: (item: BaileysEventMap[T]) => void

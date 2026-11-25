@@ -31,7 +31,7 @@ import {
 	jidNormalizedUser
 } from '../WABinary'
 import { aesDecryptGCM, hmacSign } from './crypto'
-import { getKeyAuthor, toNumber } from './generics'
+import { getKeyAuthor, normalizeStatusStanzaId, toNumber } from './generics'
 import { downloadAndProcessHistorySyncNotification } from './history'
 import type { ILogger } from './logger'
 import { buildMergedTcTokenIndexWrite, resolveTcTokenJid } from './tc-token-utils'
@@ -134,6 +134,11 @@ export const cleanMessage = (message: WAMessage, meId: string, meLid: string) =>
 		)
 	} else {
 		message.key.participant = jidNormalizedUser(message.key.participant!)
+	}
+
+	// receipts are already sent with the stanza id, keep the status by its base id
+	if (isJidStatusBroadcast(message.key.remoteJid!) && message.key.id) {
+		message.key.id = normalizeStatusStanzaId(message.key.id)
 	}
 
 	const content = normalizeMessageContent(message.message)
